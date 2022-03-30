@@ -39,3 +39,28 @@ class LeNet:
 
         # We need to return the model structure to make it integrable
         return model
+
+
+class MLP1:
+    @staticmethod
+    def build(input_shape, classes):
+        # Input
+        input_params = Input(shape=input_shape, name="InputMLP1")
+
+        # First complex of fully connected Dense Layers (dense, activation)
+        x = Dense(30, name="Dense1MLP1")(input_params)
+        x = Activation("relu", name="Relu1MlP1")(x)
+
+        # Second complex of fully connected Dense Layers (dense, activation)
+        x = Dense(15, name="Dense2MLP1")(x)
+        x = Activation("relu", name="Relu2MlP1")(x)
+
+        # Third complex of fully connected Dense Layers (dense, activation)
+        x = Dense(15, name="Dense3MLP1")(x)
+        x = Activation("relu", name="Relu3MlP1")(x)
+
+        # Fourth Complex of Classification Layer (output)
+        output = Dense(classes, activation="softmax", name="OutputMLP1")(x)
+
+        return Model(input_params, output)
+

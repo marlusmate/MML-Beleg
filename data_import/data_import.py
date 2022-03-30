@@ -34,6 +34,38 @@ def get_data_points_list(source_dir, number_points='all', exp_list='all'):
         return list(zip(image_file, metadata_file))[0:number_points]
 
 
+def load_json(data_point):
+    """
+    This loads a json file as a dictionary every time it is called.
+    :param data_point: data point (see function get_data_points_list())
+    :return: json file as dict
+    """
+    json_file = data_point[1]
+    with open(json_file) as f:
+        json_content = json.load(f)
+
+    return json_content
+
+
+def read_json(data_point, param_list='all'):
+    """
+    This returns the process data of a json file (from a dict) as a list (See function load_json()).
+    :param data_point: data point (see function get_data_points())
+    :param param_list: list of parameters to be extracted
+    :return: list of parameter values, in the same order (no labels)
+    """
+    params = []
+    json_content = load_json(data_point)
+    if param_list == 'all':
+        param_list = ["stirrer_rotational_speed", "gas_flow_rate", "temperature", "fill_level"]
+    if not all(["value" in json_content[param]["data"] for param in param_list]):
+        return None
+
+    params = [json_content[param]["data"]["value"] for param in param_list]
+
+    return params
+
+
 def read_image(file):
     """
     This function read an image and returns it as a tensorflow tensor.
@@ -110,3 +142,27 @@ def image_generator(list_data_points, repeats, no_classes, output_image_shape):
             label_data = read_label(label_file, no_classes)
 
             yield image_data, label_data
+
+
+def process_generator(list_data_points, repeats, no_classes, param_list):
+    """
+    This is a generator that yields a pair of tensors (process data and label) every time it is called. Before yielding
+    the data points are shuffled. (Please define preprocessing steps and number of classes here.)
+    :param list_data_points: List of data points (see function get_data_points_list())
+    :param repeats: In case of several epochs, number of repeats of dataset can be specified here.
+    :return: Yields pair of tensors (process data parameters  and label)
+    """
+    rpm_val = []
+    gfl_val = []
+    for repeat in range(repeats):
+        for data_point in random.sample(list_data_points, len(list_data_points)):
+            proc_list = read_json(data_point, param_list)
+            if proc_list is None:
+                continue
+            else:
+                proc_data = tf.convert_to_tensor(proc_list)
+
+                label_file = data_point[1]
+                label_data = read_label(label_file, no_classes)
+
+                yield proc_data, label_data
