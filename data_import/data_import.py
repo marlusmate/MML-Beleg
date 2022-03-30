@@ -178,7 +178,7 @@ def data_generator(list_data_points, repeats, no_classes, output_image_shape, pa
             image_original = read_image(image_file)
             proc_list = read_json(data_point, param_list)
 
-            if any([image_original, proc_list]) is None:
+            if any(file is None for file in [image_original, proc_list]) is True:
                 continue
 
             image_data = preprocess_image(image_original, output_image_shape)

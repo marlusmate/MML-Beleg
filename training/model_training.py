@@ -46,7 +46,7 @@ output_signature = ((tf.TensorSpec(shape=output_img_shape, dtype=tf.float32),
 no_train_points = int(split_ratio[0] / sum(split_ratio) * dataset_len)
 data_points_train = shuffled_data_points[:no_train_points]
 
-data_gen_train = data_generator(data_points_train, no_epochs, no_classes, param_list)
+data_gen_train = data_generator(data_points_train, no_epochs, no_classes, output_img_shape, param_list)
 dataset_train = tf.data.Dataset.from_generator(lambda: data_gen_train, output_signature=output_signature)
 dataset_train_batched = dataset_train.batch(batch_size)
 
@@ -54,7 +54,7 @@ dataset_train_batched = dataset_train.batch(batch_size)
 no_val_points = int(split_ratio[1] / sum(split_ratio) * dataset_len)
 data_points_val = shuffled_data_points[no_train_points:no_train_points + no_val_points]
 
-data_gen_val = data_generator(data_points_train, no_epochs, no_classes, param_list)
+data_gen_val = data_generator(data_points_train, no_epochs, no_classes, output_img_shape, param_list)
 dataset_val = tf.data.Dataset.from_generator(lambda: data_gen_val, output_signature=output_signature)
 dataset_val_batched = dataset_val.batch(batch_size)
 
@@ -62,7 +62,7 @@ dataset_val_batched = dataset_val.batch(batch_size)
 no_test_points = int(split_ratio[2] / sum(split_ratio) * dataset_len)
 data_points_test = shuffled_data_points[no_train_points + no_val_points:]
 
-data_gen_test = data_generator(data_points_test, no_epochs, no_classes, param_list)
+data_gen_test = data_generator(data_points_test, no_epochs, no_classes, output_img_shape, param_list)
 dataset_test = tf.data.Dataset.from_generator(lambda: data_gen_test, output_signature=output_signature)
 dataset_test_batched = dataset_test.batch(batch_size)
 
@@ -70,7 +70,7 @@ dataset_test_batched = dataset_test.batch(batch_size)
 # Model compilation
 opt = Adam(learning_rate=init_lr, decay=init_lr / no_epochs)
 model = MMMLP1.build_fusion(input_shape_image=output_img_shape,
-                            input_shape_params=output_img_shape, no_classes=no_classes)
+                            input_shape_params=output_proc_shape, no_classes=no_classes)
 model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
 model.summary()
 

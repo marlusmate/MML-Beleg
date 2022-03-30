@@ -84,7 +84,7 @@ class MMMLP1:
         # Output Layer (flatten)
         output_img = Flatten(name="outputIamgeMMMLP1")(x)
 
-        return Model(inputs=input_image, outputs=output_img)
+        return Model(inputs=input_image, outputs=output_img, name="ModelImageExtract")
 
     @staticmethod
     def build_params_extraction(input_shape):
@@ -100,9 +100,9 @@ class MMMLP1:
         x = Activation("relu", name="relu2ParamMMlP1")(x)
 
         # Output
-        output_params = Dense(15, name="OutputParamMMMLP1")
+        output_params = Dense(15, name="OutputParamMMMLP1")(x)
 
-        return Model(inputs=input_params, outputs=output_params)
+        return Model(inputs=input_params, outputs=output_params, name="ModelParamExtract")
 
     @staticmethod
     def build_fusion(input_shape_image, input_shape_params, no_classes):
@@ -115,7 +115,7 @@ class MMMLP1:
         param1 = MMMLP1.build_params_extraction(input_shape_params)
 
         # First complex of fully connected Layers (concatenate)
-        merged = Concatenate(name="concat1MMMLP1")([cnn1, param1])
+        merged = Concatenate()([cnn1(image_in), param1(params_in)])
 
         # Second complex of fully connected Layers (dense, activation
         x = Dense(30, name="dense1MergedMMMLP1")(merged)
@@ -128,4 +128,4 @@ class MMMLP1:
         # Output
         output = Dense(no_classes, activation="sigmoid", name="OutputMergedMMMLP1")(x)
 
-        return Model(inputs=(image_in, params_in), outputs=output)
+        return Model(inputs=(image_in, params_in), outputs=output, name="ModelMultimodal")
