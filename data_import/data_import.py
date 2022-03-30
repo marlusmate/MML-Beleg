@@ -95,6 +95,32 @@ def read_label(file, no_classes):
         label = one_hot_encoder[label_int]
         return label
 
+def preprocess_image(image_file, output_image_shape):
+    # Preprocessing
+    # Convert to Gray Scale
+    if image_file.shape[2] != 1:
+        image_grayscaled = tf.image.rgb_to_grayscale(image_file)
+    else:
+        image_grayscaled = image_file
+
+    # Crop Image
+    offset_width = 0
+    target_width = image_grayscaled.shape[0]
+    offset_height = image_grayscaled.shape[1] // 5
+    target_height = 3 * image_grayscaled.shape[1] // 5
+
+    image_croped = tf.image.crop_to_bounding_box(image_grayscaled, offset_height, offset_width, target_height,
+                                                 target_width)
+
+    # Resize to output_image_shape
+    final_image_size = list(output_image_shape)[0:2]
+    image_resized = tf.image.resize(image_croped, final_image_size, method='bicubic')
+
+    # Normalize Image
+    image_normed = image_resized / 255
+
+    return image_normed
+
 
 def image_generator(list_data_points, repeats, no_classes, output_image_shape):
     """
@@ -112,30 +138,7 @@ def image_generator(list_data_points, repeats, no_classes, output_image_shape):
             if image_original is None:
                 continue
 
-            # Preprocessing
-
-            # Convert to Gray Scale
-            if image_original.shape[2] != 1:
-                image_grayscaled = tf.image.rgb_to_grayscale(image_original)
-            else:
-                image_grayscaled = image_original
-
-            # Crop Image
-            offset_width = 0
-            target_width = image_grayscaled.shape[0]
-            offset_height = image_grayscaled.shape[1] // 5
-            target_height = 3 * image_grayscaled.shape[1] // 5
-
-            image_croped = tf.image.crop_to_bounding_box(image_grayscaled, offset_height, offset_width, target_height, target_width)
-
-            # Resize to output_image_shape
-            final_image_size = list(output_image_shape)[0:2]
-            image_resized = tf.image.resize(image_croped, final_image_size, method='bicubic')
-
-            # Normalize Image
-            image_normed = image_resized / 255
-
-            image_data = image_normed
+            image_data = preprocess_image(image_original, output_image_shape)
 
             # Get Label
             label_file = data_point[1]
@@ -152,8 +155,6 @@ def process_generator(list_data_points, repeats, no_classes, param_list):
     :param repeats: In case of several epochs, number of repeats of dataset can be specified here.
     :return: Yields pair of tensors (process data parameters  and label)
     """
-    rpm_val = []
-    gfl_val = []
     for repeat in range(repeats):
         for data_point in random.sample(list_data_points, len(list_data_points)):
             proc_list = read_json(data_point, param_list)
@@ -166,3 +167,23 @@ def process_generator(list_data_points, repeats, no_classes, param_list):
                 label_data = read_label(label_file, no_classes)
 
                 yield proc_data, label_data
+
+
+def data_generator(list_data_points, repeats, no_classes, output_image_shape, param_list):
+    for repeat in range(repeats):
+        for data_point in random.sample(list_data_points, len(list_data_points)):
+            image_file = data_point[0]
+            label_file = data_point[1]
+
+            image_original = read_image(image_file)
+            proc_list = read_json(data_point, param_list)
+
+            if any([image_original, proc_list]) is None:
+                continue
+
+            image_data = preprocess_image(image_original, output_image_shape)
+            proc_data = tf.convert_to_tensor(proc_list)
+
+            label_data = read_label(label_file, no_classes)
+
+            yield (image_data, proc_data), label_data
