@@ -20,7 +20,7 @@ checkpoint_path = './results/checkpointsMLP/checkpoint-{epoch:04d}.ckpt'
 tensorboard_log_folder = './resultsMLP/tensorboard'
 
 # Dataset parameters
-exp_list = ["exp_2022-02-25_exp03"]
+exp_list = ["exp_2022-02-25_exp03", "exp_2022-02-25_exp07"]
 param_list = ["stirrer_rotational_speed", "gas_flow_rate", "temperature", "fill_level"]
 no_classes = 3
 split_ratio = [0.9, 0.1, 0.0]
@@ -107,9 +107,9 @@ history = model.fit(dataset_train_batched,
                     )
 
 # Saving model
-model.save('./results/trained_modelMLP1')
+model.save('./results/trained_modelMMMLP1')
 
 # Print and save on disk model training history
-with open('./results/reportMLP1.json', 'w', encoding='utf-8') as f:
+with open('./results/reportMMMLP1.json', 'w', encoding='utf-8') as f:
     json.dump(history.history, f, ensure_ascii=False, indent=4)
 
