@@ -2,6 +2,29 @@ import os
 import random
 import tensorflow as tf
 import json
+import pandas as pd
+import numpy as np
+
+
+def get_exp_list():
+    """
+    (not pretty) Extracts Experiments-folder-names that are to be used for training.
+    Which Exps are used is defined within csv / Excel file
+
+    :return: list of Names of exp-folders that have data for training/test purpose
+    """
+    df = pd.read_csv("../data/ExpTab.csv", delimiter=";")
+    exp_list = []
+    print("Ausgewählte Experimente:")
+    for exp in np.arange(len(df)):
+        if df.iloc[exp]["in-use"] == 1:
+            exp_string = "exp_2022-" + df.iloc[exp]["Datum"] + "_" + df.iloc[exp]["ExpNr"]
+            if not exp_list.__contains__(exp_string):
+                exp_list.append(exp_string)
+                print(exp_string)
+    print("Anzahl Setpoints: ", len(exp_list))
+
+    return exp_list
 
 
 def get_data_points_list(source_dir, number_points='all', exp_list='all'):
@@ -17,9 +40,9 @@ def get_data_points_list(source_dir, number_points='all', exp_list='all'):
 
     image_file = []
     metadata_file = []
-    source_dir = [os.path.join(source_dir, dir) for dir in os.listdir(source_dir) if
-                  any([dir.__contains__(exp) for exp in exp_list])]
-    for fdir in source_dir:
+    source_dirs = [os.path.join(source_dir, dir) for dir in os.listdir(source_dir) if
+                   exp_list.__contains__(dir)]
+    for fdir in source_dirs:
         for file in os.listdir(fdir):
             if os.path.isfile(os.path.join(fdir, file)) and file.endswith('.png'):
                 filename_image = os.path.join(fdir, file)
@@ -94,6 +117,7 @@ def read_label(file, no_classes):
         label_int = json_content["flow_regime"]["data"]["value"]
         label = one_hot_encoder[label_int]
         return label
+
 
 def preprocess_image(image_file, output_image_shape):
     # Preprocessing

@@ -5,7 +5,7 @@ import tensorflow as tf
 import random
 import json
 
-from data_import.data_import import get_data_points_list, data_generator
+from data_import.data_import import get_data_points_list, data_generator, get_exp_list
 
 # Disable CUDA devices
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -20,7 +20,8 @@ checkpoint_path = './results/checkpointsMLP/checkpoint-{epoch:04d}.ckpt'
 tensorboard_log_folder = './resultsMLP/tensorboard'
 
 # Dataset parameters
-exp_list = ["exp_2022-02-25_exp03", "exp_2022-02-25_exp07"]
+#exp_list = ["exp_2022-02-25_exp03", "exp_2022-02-25_exp07"]
+exp_list = get_exp_list()
 param_list = ["stirrer_rotational_speed", "gas_flow_rate", "temperature", "fill_level"]
 no_classes = 3
 split_ratio = [0.9, 0.1, 0.0]
