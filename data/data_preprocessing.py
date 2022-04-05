@@ -15,12 +15,13 @@ data_points = get_data_points_list(data_raw_folder)
 
 
 # Preprocess
+image_output_shape = (128, 128, 1)
 for data_point in data_points:
     img_file = data_point[0]
     proc_file = data_point[1]
 
     img = read_image(img_file)
-    img = preprocess_image(img)
+    img = preprocess_image(img, output_image_shape=image_output_shape)
     print(type("Typ vorverarbeitetes Bild-array: ", img))
 
     img = Image.fromarray(img)
