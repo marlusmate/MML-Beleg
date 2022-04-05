@@ -38,6 +38,8 @@ def get_data_points_list(source_dir, number_points='all', exp_list='all'):
     :return: List of full file names including full paths to files to each data points.
     """
 
+    if exp_list == 'all':
+        exp_list = os.listdir(source_dir)
     image_file = []
     metadata_file = []
     source_dirs = [os.path.join(source_dir, dir) for dir in os.listdir(source_dir) if
