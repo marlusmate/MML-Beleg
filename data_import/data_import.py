@@ -131,7 +131,7 @@ def preprocess_image(image_file, output_image_shape):
     offset_width = 0
     target_width = image_grayscaled.shape[0]
     offset_height = image_grayscaled.shape[1] // 5
-    target_height = 3 * image_grayscaled.shape[1] // 5
+    target_height = 4 * image_grayscaled.shape[1] // 5
 
     image_croped = tf.image.crop_to_bounding_box(image_grayscaled, offset_height, offset_width, target_height,
                                                  target_width)
