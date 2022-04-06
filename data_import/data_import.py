@@ -131,12 +131,14 @@ def preprocess_image(image_file,crop_box, output_image_shape):
     print("Shape image_grayscaled: ", image_grayscaled.shape, "; Type: ", type(image_grayscaled))
 
     # Crop Box, Size
-    crop_points = np.array([crop_box[0], 0, crop_box[1], image_grayscaled.shape[0]])
-    box = [1, crop_points ]
-    crop_size = list(output_image_shape[:-1])
+    crop_points = [crop_box[0], 0, crop_box[1], image_grayscaled.shape[0]]
+    box = tf.constant([crop_points])
+    box_ind = tf.constant(0)
+    crop_size = tf.constant(output_image_shape[:-1])
+
 
     # Crop and Resize
-    image_preprocessed = tf.image.crop_and_resize(image_grayscaled, boxes=box, crop_size=crop_size)
+    image_preprocessed = tf.image.crop_and_resize(image_grayscaled, boxes=box, box_indices=box_ind, crop_size=crop_size)
 
     # Normalize Image
     image_normed = image_preprocessed / 255
