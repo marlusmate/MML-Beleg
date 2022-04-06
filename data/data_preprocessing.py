@@ -15,6 +15,8 @@ data_prepro_folder = '/mnt/0A60B2CB60B2BD2F/Datasets/bioreactor_flow_regimes_me/
 # Get List of data points
 data_points = get_data_points_list(data_raw_folder)
 
+# Crop Matrix
+crop_matrix = {"02-08": [394, 1617],"02-09": [153, 1777],"02-22": [257, 1727],"02-25": [257, 1727],"03-09": [255, 1798]}
 
 # Preprocess
 image_output_shape = (128, 128, 1)
@@ -27,8 +29,10 @@ for data_point in data_points[:10]:
 
     if any(file is None for file in [img, file]) is True:
         continue
-    crop_box = []
-    img = preprocess_image(img,crop_box=crop_box, output_image_shape=image_output_shape)
+
+    exp_date = [date for date in crop_matrix.keys() if date in img_file]
+
+    img = preprocess_image(img,crop_box=crop_matrix[exp_date[0]], output_image_shape=image_output_shape)
 
     print("Typ vorverarbeitetes Bild-array: ", type(img))
 

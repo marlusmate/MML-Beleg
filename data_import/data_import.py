@@ -128,22 +128,18 @@ def preprocess_image(image_file,crop_box, output_image_shape):
         image_grayscaled = tf.image.rgb_to_grayscale(image_file)
     else:
         image_grayscaled = image_file
+    print("Shape image_grayscaled: ", image_grayscaled.shape, "; Type: ", type(image_grayscaled))
 
-    # Crop Image
-    offset_width = 0
-    target_width = image_grayscaled.shape[0]
-    offset_height = image_grayscaled.shape[1] // 7
-    target_height = 4 * (image_grayscaled.shape[1] // 7)
+    # Crop Box, Size
+    crop_points = np.array([crop_box[0], 0, crop_box[1], image_grayscaled.shape[0]])
+    box = [1, crop_points ]
+    crop_size = list(output_image_shape[:-1])
 
-    image_croped = tf.image.crop_to_bounding_box(image_grayscaled, offset_height, offset_width, target_height,
-                                                 target_width)
-
-    # Resize to output_image_shape
-    final_image_size = list(output_image_shape)[0:2]
-    image_resized = tf.image.resize(image_croped, final_image_size, method='bicubic')
+    # Crop and Resize
+    image_preprocessed = tf.image.crop_and_resize(image_grayscaled, boxes=box, crop_size=crop_size)
 
     # Normalize Image
-    image_normed = image_resized / 255
+    image_normed = image_preprocessed / 255
 
     return image_normed
 
