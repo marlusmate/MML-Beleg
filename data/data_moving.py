@@ -4,8 +4,8 @@ import random
 import shutil
 from data_import.data_import import get_data_points_list
 # Directories
-source_dir =
-target_dir =
+source_dir = '/mnt/0A60B2CB60B2BD2F/Datasets/bioreactor_flow_regimes_me/02_data'
+target_dir = '/mnt/0A60B2CB60B2BD2F/Datasets/bioreactor_flow_regimes_me/04_test_data'
 
 # Get data_points, shuffeld list
 data_points = get_data_points_list(source_dir)
@@ -13,14 +13,14 @@ shuffled_data_points = random.sample(data_points, len(data_points))
 dataset_len = len(shuffled_data_points)
 
 # Split Final Test set
-split_ratio = [0.7, 0.1]
+split_ratio = [0.9, 0.1]
 
 # Training-, Validation Set
 no_train_points = int(split_ratio[0] / sum(split_ratio) * dataset_len)
 data_points_train = shuffled_data_points[:no_train_points]
 
 # Test Set
-no_test_points = int(split_ratio[0] / sum(split_ratio) * dataset_len)
+no_test_points = int(split_ratio[1] / sum(split_ratio) * dataset_len)
 data_points_test = shuffled_data_points[no_train_points: no_train_points + no_test_points]
 
 # Print
@@ -42,3 +42,8 @@ for data_point in data_points_test:
     shutil.move(data_point[0], img_path) # Image
     shutil.move(data_point[1], file_path) # Json-File
     print("Moved file ", data_point[0], " to ", img_path)
+
+    # Delete in Source
+    #os.remove(data_point[0])
+    #os.remove(data_point[1])
+    print("Data Point ", data_point, " deleted")
