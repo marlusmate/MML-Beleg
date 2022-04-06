@@ -121,7 +121,7 @@ def read_label(file, no_classes):
         return label
 
 
-def preprocess_image(image_file, output_image_shape):
+def preprocess_image(image_file,crop_box, output_image_shape):
     # Preprocessing
     # Convert to Gray Scale
     if image_file.shape[2] != 1:
@@ -132,8 +132,8 @@ def preprocess_image(image_file, output_image_shape):
     # Crop Image
     offset_width = 0
     target_width = image_grayscaled.shape[0]
-    offset_height = image_grayscaled.shape[1] // 5
-    target_height = 4 * image_grayscaled.shape[1] // 5
+    offset_height = image_grayscaled.shape[1] // 7
+    target_height = 4 * (image_grayscaled.shape[1] // 7)
 
     image_croped = tf.image.crop_to_bounding_box(image_grayscaled, offset_height, offset_width, target_height,
                                                  target_width)
@@ -201,15 +201,15 @@ def data_generator(list_data_points, repeats, no_classes, output_image_shape, pa
             image_file = data_point[0]
             label_file = data_point[1]
 
-            image_original = read_image(image_file)
+            image_preprocessed = read_image(image_file)
             proc_list = read_json(data_point, param_list)
 
             if any(file is None for file in [image_original, proc_list]) is True:
                 continue
 
-            image_data = preprocess_image(image_original, output_image_shape)
+            #image_data = preprocess_image(image_original, output_image_shape)
             proc_data = tf.convert_to_tensor(proc_list)
 
             label_data = read_label(label_file, no_classes)
 
-            yield (image_data, proc_data), label_data
+            yield (image_preprocessed, proc_data), label_data
