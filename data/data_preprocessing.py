@@ -20,7 +20,7 @@ crop_matrix = {"02-08": [394, 1617],"02-09": [153, 1777],"02-22": [257, 1727],"0
 
 # Preprocess
 image_output_shape = (128, 128, 1)
-for data_point in data_points[:10]:
+for data_point in data_points:
     img_file = data_point[0]
     proc_file = data_point[1]
 

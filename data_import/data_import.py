@@ -37,22 +37,16 @@ def get_data_points_list(source_dir, number_points='all', exp_list='all'):
     helps to test the training pipeline with a small amount of data.
     :return: List of full file names including full paths to files to each data points.
     """
-
-    if exp_list == 'all':
-        exp_list = os.listdir(source_dir)
     image_file = []
     metadata_file = []
-    source_dirs = [os.path.join(source_dir, dir) for dir in os.listdir(source_dir) if
-                   exp_list.__contains__(dir)]
-    for fdir in source_dirs:
-        for file in os.listdir(fdir):
-            if os.path.isfile(os.path.join(fdir, file)) and file.endswith('.png'):
-                filename_image = os.path.join(fdir, file)
-                filename = os.path.splitext(file)[0][:-13]
-                filename_metadata = os.path.join(fdir, filename + '.json')
-                if os.path.isfile(filename_metadata):
-                    image_file.append(filename_image)
-                    metadata_file.append(filename_metadata)
+    for file in os.listdir(source_dir):
+        if os.path.isfile(os.path.join(source_dir, file)) and file.endswith('.png'):
+            filename_image = os.path.join(source_dir, file)
+            filename = os.path.splitext(file)[0][:-13]
+            filename_metadata = os.path.join(source_dir, filename + '.json')
+            if os.path.isfile(filename_metadata):
+                image_file.append(filename_image)
+                metadata_file.append(filename_metadata)
     if number_points == 'all':
         return list(zip(image_file, metadata_file))
     else:
@@ -136,12 +130,15 @@ def preprocess_image(image_file,crop_box, output_image_shape):
     box_ind = tf.constant(0)
     crop_size = tf.constant(output_image_shape[:-1])
 
-
-    # Crop and Resize
-    image_preprocessed = tf.image.crop_and_resize(image_grayscaled, boxes=box, box_indices=box_ind, crop_size=crop_size)
+    # Crop and
+    image_cropped = tf.image.crop_to_bounding_box(image_grayscaled, crop_points[0], crop_points[1], crop_points[2]-crop_points[0],
+                                                  crop_points[3])
+    # Resize
+    final_image_size = list(output_image_shape)[0:2]
+    image_resized = tf.image.resize(image_cropped, final_image_size, method='bicubic')
 
     # Normalize Image
-    image_normed = image_preprocessed / 255
+    image_normed = image_resized / 255
 
     return image_normed
 
@@ -202,7 +199,7 @@ def data_generator(list_data_points, repeats, no_classes, output_image_shape, pa
             image_preprocessed = read_image(image_file)
             proc_list = read_json(data_point, param_list)
 
-            if any(file is None for file in [image_original, proc_list]) is True:
+            if any(file is None for file in [image_preprocessed, proc_list]) is True:
                 continue
 
             #image_data = preprocess_image(image_original, output_image_shape)
