@@ -6,7 +6,7 @@ from tensorflow.keras.layers import Flatten
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Concatenate
-from tensorflow.keras.layers import concatenate
+from tensorflow.keras.layers import Dropout
 from tensorflow.keras import Model
 from tensorflow import float32
 
@@ -72,12 +72,17 @@ class MMMLP1:
         input_image = Input(shape=input_shape, name="InputImageMMMLP1")
 
         # First complex of convolutional layers (conv, activation, pooling)
-        x = Conv2D(filters=20, kernel_size=(5, 5), padding="same", name="conv1MMMLP1")(input_image)
+        x = Conv2D(filters=20, kernel_size=(7, 7), padding="same", name="conv1MMMLP1")(input_image)
         x = Activation("relu", name="relu1ImgMMMLP1")(x)
         x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2), name="maxpool1MMMLP1")(x)
 
         # Second complex of convolutional layers (conv, activation, pooling)
         x = Conv2D(filters=15, kernel_size=(5, 5), padding="same", name="conv2MMMLP1")(x)
+        x = Activation("relu", name="relu2ImgMMMLP1")(x)
+        x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2), name="maxpool2MMMLP1")(x)
+
+        # Third complex of convolutional layers (conv, activation, pooling)
+        x = Conv2D(filters=10, kernel_size=(5, 5), padding="same", name="conv2MMMLP1")(x)
         x = Activation("relu", name="relu2ImgMMMLP1")(x)
         x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2), name="maxpool2MMMLP1")(x)
 
@@ -92,12 +97,13 @@ class MMMLP1:
         input_params = Input(shape=input_shape, name="InputProcessMMMLP1")
 
         # First complex of fully connected Dense Layers (dense, activation)
-        x = Dense(30, name="dense1ParamMMMLP1")(input_params)
+        x = Dense(20, name="dense1ParamMMMLP1")(input_params)
         x = Activation("relu", name="relu1ParamMMMlP1")(x)
 
         # Second complex of fully connected Dense Layers (dense, activation)
         x = Dense(15, name="dense2ParamMMMLP1")(x)
         x = Activation("relu", name="relu2ParamMMlP1")(x)
+
 
         # Output
         output_params = Dense(15, name="OutputParamMMMLP1")(x)
@@ -118,12 +124,15 @@ class MMMLP1:
         merged = Concatenate()([cnn1(image_in), param1(params_in)])
 
         # Second complex of fully connected Layers (dense, activation
-        x = Dense(30, name="dense1MergedMMMLP1")(merged)
+        x = Dense(15, name="dense1MergedMMMLP1")(merged)
         x = Activation("relu", name="relu1MergedMMMlP1")(x)
+        x = Dropout(rate=0.2)(x)
+
 
         # Second complex of fully connected Dense Layers (dense, activation)
         x = Dense(15, name="dense2MergedMMMLP1")(x)
         x = Activation("relu", name="relu2MergedMMlP1")(x)
+        x = Dropout(rate=0.2)(x)
 
         # Output
         output = Dense(no_classes, activation="sigmoid", name="OutputMergedMMMLP1")(x)
