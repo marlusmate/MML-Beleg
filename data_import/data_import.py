@@ -2,29 +2,8 @@ import os
 import random
 import tensorflow as tf
 import json
-import pandas as pd
 import numpy as np
-
-
-def get_exp_list():
-    """
-    (not pretty) Extracts Experiments-folder-names that are to be used for training.
-    Which Exps are used is defined within csv / Excel file
-
-    :return: list of Names of exp-folders that have data for training/test purpose
-    """
-    df = pd.read_csv("../data/ExpTab.csv", delimiter=";")
-    exp_list = []
-    print("Ausgewählte Experimente:")
-    for exp in np.arange(len(df)):
-        if df.iloc[exp]["in-use"] == 1:
-            exp_string = "exp_2022-" + df.iloc[exp]["Datum"] + "_" + df.iloc[exp]["ExpNr"]
-            if not exp_list.__contains__(exp_string):
-                exp_list.append(exp_string)
-                print(exp_string)
-    print("Anzahl Setpoints: ", len(exp_list))
-
-    return exp_list
+import pickle
 
 
 def get_data_points_list(source_dir, number_points='all', exp_list='all'):
@@ -64,6 +43,21 @@ def load_json(data_point):
         json_content = json.load(f)
 
     return json_content
+
+
+def read_picklelist(image_path, param_path):
+    """
+    This functions loads lists of data points, saved as pickle and zips them together for a list of data points
+    :param image_path: path to list (pickle) of image data-points
+    :param param_path: path to list (pickle) of parameters data-points
+    :return: list of tuples of data points
+    """
+    with open(image_path, 'rb') as f:
+        data_points_image = pickle.load(f)
+    with open(param_path, 'rb') as f:
+        data_points_param = pickle.load(f)
+
+    return list(zip(data_points_image, data_points_param))
 
 
 def read_json(data_point, param_list='all'):
@@ -115,7 +109,7 @@ def read_label(file, no_classes):
         return label
 
 
-def preprocess_image(image_file,crop_box, output_image_shape):
+def preprocess_image(image_file, crop_box, output_image_shape):
     # Preprocessing
     # Convert to Gray Scale
     if image_file.shape[2] != 1:
@@ -143,53 +137,6 @@ def preprocess_image(image_file,crop_box, output_image_shape):
     return image_normed
 
 
-def image_generator(list_data_points, repeats, no_classes, output_image_shape):
-    """
-    This is a generator that yields a pair of tensors (image and label) every time it is called. Before yielding
-    the data points are shuffled and images are preprocessed. Please define preprocessing steps and number of classes
-    here.
-    :param list_data_points: List of data points (see function get_data_points_list())
-    :param repeats: In case of several epochs, number of repeats of dataset can be specified here.
-    :return: Yields pair of tensors (preprocessed image and label)
-    """
-    for repeat in range(repeats):
-        for data_point in random.sample(list_data_points, len(list_data_points)):
-            image_file = data_point[0]
-            image_original = read_image(image_file)
-            if image_original is None:
-                continue
-
-            image_data = preprocess_image(image_original, output_image_shape)
-
-            # Get Label
-            label_file = data_point[1]
-            label_data = read_label(label_file, no_classes)
-
-            yield image_data, label_data
-
-
-def process_generator(list_data_points, repeats, no_classes, param_list):
-    """
-    This is a generator that yields a pair of tensors (process data and label) every time it is called. Before yielding
-    the data points are shuffled. (Please define preprocessing steps and number of classes here.)
-    :param list_data_points: List of data points (see function get_data_points_list())
-    :param repeats: In case of several epochs, number of repeats of dataset can be specified here.
-    :return: Yields pair of tensors (process data parameters  and label)
-    """
-    for repeat in range(repeats):
-        for data_point in random.sample(list_data_points, len(list_data_points)):
-            proc_list = read_json(data_point, param_list)
-            if proc_list is None:
-                continue
-            else:
-                proc_data = tf.convert_to_tensor(proc_list)
-
-                label_file = data_point[1]
-                label_data = read_label(label_file, no_classes)
-
-                yield proc_data, label_data
-
-
 def data_generator(list_data_points, repeats, no_classes, output_image_shape, param_list):
     for repeat in range(repeats):
         for data_point in random.sample(list_data_points, len(list_data_points)):
@@ -207,4 +154,4 @@ def data_generator(list_data_points, repeats, no_classes, output_image_shape, pa
 
             label_data = read_label(label_file, no_classes)
 
-            yield (image_preprocessed, proc_data), label_data
+            yield image_preprocessed,  label_data
