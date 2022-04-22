@@ -144,13 +144,9 @@ def data_generator(list_data_points, repeats, no_classes, output_image_shape, pa
             label_file = data_point[1]
 
             image_preprocessed = read_image(image_file)
-            proc_list = read_json(data_point, param_list)
 
-            if any(file is None for file in [image_preprocessed, proc_list]) is True:
+            if image_preprocessed is None:
                 continue
-
-            #image_data = preprocess_image(image_original, output_image_shape)
-            proc_data = tf.convert_to_tensor(proc_list)
 
             label_data = read_label(label_file, no_classes)
 

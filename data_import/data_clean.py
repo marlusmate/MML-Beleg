@@ -99,7 +99,7 @@ def get_pred_proba(pred_proba, y_true):
     """
     Selects predicted probalities of true classes from prediction set
     :param pred_proba: One hot Label Probabilities
-    :param y_true: SparseTrue Label
+    :param y_true: Sparse True Label
     :return: list of predicted probabilites for true classes
     """
     pred = []

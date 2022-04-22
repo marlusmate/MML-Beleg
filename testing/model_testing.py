@@ -30,10 +30,17 @@ image_list = '../training/image-points-test.pickle'
 param_list = '../training/param-points-test.pickle'
 
 # Data Generator
-
 data_points = read_picklelist(image_path=image_list, param_path=param_list)
 shuffled_data_points = random.sample(data_points, len(data_points))
-#dataset_len = len(shuffled_data_points)
+
+# Get Distribution
+lb_test = []
+for data_point in data_points_test:
+    with open(data_point[1]) as f:
+        json_content = json.load(f)
+        lb_test.append(json_content["flow_regime"]["data"]["value"])
+print("Test Instanzen:\n-----------------------")
+print("Klasse 0: ", lb_test.count(0), "\nKlasse 1: ", lb_test.count(1), "\nKlasse 2: ", lb_test.count(2))
 
 output_signature = (tf.TensorSpec(shape=output_img_shape, dtype=tf.float32),
                     tf.TensorSpec(shape=(no_classes), dtype=tf.bool))
@@ -71,7 +78,9 @@ cf_mat = tf.math.confusion_matrix(lb_tf, pred_tf, num_classes=no_classes)
 row_sums = tf.math.reduce_sum(input_tensor= cf_mat, axis=1)
 cf_mat_norm = cf_mat / row_sums
 plt.matshow(cf_mat, cmap=plt.cm.gray)
+conf1 = plt.gcf()
 plt.show()
+conf1.savefig("../Figures/ConfusionMatrix")
 
 # Get Metrics - Precision, Recall, F1
 # Gotta love multiclass problems
@@ -119,7 +128,9 @@ plt.bar(x_axis -0.1, class_1, width=0.2, label = '1')
 plt.bar(x_axis +0.1, class_2, width=0.2, label = '2')
 plt.xticks(x_axis, metrics_names)
 plt.legend()
+bar1 = plt.gcf()
 plt.show()
+bar1.savefig("../Figures/Barplot_Precsion-Recall")
 
 
 # ROC, AUC, log loss?
@@ -133,20 +144,21 @@ fpr_2, tpr_2, thresholds_2 = roc_curve(ovr_2_true, y_true_proba)
 plt.plot(fpr_0, tpr_0, label=0)
 plt.plot(fpr_1, tpr_1, label=1)
 plt.plot(fpr_2, tpr_2, label=2)
-plt.plot([0,1], [0,1], 'k--')
+plt.plot([0, 1], [0, 1], 'k--')
 plt.legend()
+roc1 = plt.gcf()
 plt.show()
+roc1.savefig("../Figures/Roc_curves")
+
+# Calc AUC
+auc_0 = tf.keras.metrics.AUC()
+auc_0.update_state(ovr_0_true, ovr_0_pred)
+auc_0_val = auc_0.result().numpy()
+
+
+# Save Metrics to json-file
 
 
 
 
 
-
-
-
-
-
-
-print(type(pred))
-print(len(pred))
-print("y")
