@@ -144,10 +144,13 @@ def data_generator(list_data_points, repeats, no_classes, output_image_shape, pa
             label_file = data_point[1]
 
             image_preprocessed = read_image(image_file)
+            params_preprocessed = tf.constant(read_json(label_file, param_list=param_list), dtype=tf.float32) # actually not preprocessed, just loaded
 
             if image_preprocessed is None:
+                continue
+            if params_preprocessed is None:
                 continue
 
             label_data = read_label(label_file, no_classes)
 
-            yield image_preprocessed,  label_data
+            yield (image_preprocessed, params_preprocessed),  label_data

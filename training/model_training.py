@@ -13,7 +13,7 @@ from data_import.data_import import get_data_points_list, data_generator
 print(tf.config.list_physical_devices('GPU'))
 
 # Model Name
-model_name = "LeNet20x50"
+model_name = "EarlyFusion1"
 
 # Path to data
 data_folder = '/mnt/0A60B2CB60B2BD2F/Datasets/bioreactor_flow_regimes_me/02_data'
@@ -42,7 +42,8 @@ shuffled_data_points = random.sample(data_points, len(data_points))
 dataset_len = len(shuffled_data_points)
 
 # Dataset output siganture
-output_signature = (tf.TensorSpec(shape=output_img_shape, dtype=tf.float32),
+output_signature = ((tf.TensorSpec(shape=output_img_shape, dtype=tf.float32),
+                    tf.TensorSpec(shape=output_proc_shape, dtype=tf.float32)),
                     tf.TensorSpec(shape=(no_classes), dtype=tf.bool))
 
 # Training dataset
@@ -98,7 +99,7 @@ print("\nSaved Data points for testing; n=", len(data_points_test))
 
 # Model compilation
 opt = Adam(learning_rate=init_lr, decay=init_lr / no_epochs)
-model = mmlmodel.build(input_shape=output_img_shape, classes=no_classes)
+model = mmlmodel.build(input_shape_image=output_img_shape, input_shape_params=output_proc_shape, classes=no_classes)
 model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
 model.summary()
 
