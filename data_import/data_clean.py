@@ -69,3 +69,45 @@ def sort_data_points(data_points, set_points, num):
 
     return data_points_setpoint, data_points_trans
 
+
+def convert_to_binary(lb_pred, lb_true, label):
+    """
+    Converts multiclass labels (0,1,2) to binary, one-vs-rest labels
+    :param lb_pred: list of predicted multiclass labels
+    :param lb_true: list of true multiclass label
+    :param label: label to be the "one" against the other labels
+    :return: list of binary label
+    """
+    lb_pred_new = []
+    lb_true_new = []
+    for lb in lb_pred:
+        if lb == label:
+            lb_pred_new.append(1)
+        else:
+            lb_pred_new.append(0)
+
+    for lb in lb_true:
+        if lb == label:
+            lb_true_new.append(1)
+        else:
+            lb_true_new.append(0)
+
+    return lb_pred_new, lb_true_new
+
+
+def get_pred_proba(pred_proba, y_true):
+    """
+    Selects predicted probalities of true classes from prediction set
+    :param pred_proba: One hot Label Probabilities
+    :param y_true: Sparse True Label
+    :return: list of predicted probabilites for true classes
+    """
+    pred = []
+    for i in np.arange(len(pred_proba)):
+        proba = pred_proba[i][y_true[i]]
+        pred.append(proba)
+
+    return pred
+
+
+
