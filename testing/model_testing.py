@@ -24,53 +24,30 @@ no_epochs = 1
 model_type = "LeNet20x50"
 
 # Paths
-model_path = '../training/results'
-model_name = f'/results/{model_type}/trained_model'
-model_checkpoint_path = f'../training/results/{model_type}' + '/checkpoints/checkpoint-0010.ckpt'
-data_list = '../data/data-points-val.pickle'
+data_list = '../data/data-points-test.pickle'
 
 # Data Generator
 with open(data_list, 'rb') as file:
     # Call load method to deserialze
     data_points = pickle.load(file)
 shuffled_data_points = random.sample(data_points, len(data_points))
+print("Datenpunkte '", data_list, "' geladen, n=", len(data_points))
 
-# Get Distribution
-lb_test = []
-for data_point in data_points:
-    with open(data_point[1]) as f:
-        json_content = json.load(f)
-        lb_test.append(json_content["flow_regime"]["data"]["value"])
-print("Test Instanzen:\n-----------------------")
-print("Klasse 0: ", lb_test.count(0), "\nKlasse 1: ", lb_test.count(1), "\nKlasse 2: ", lb_test.count(2))
-
-output_signature = (tf.TensorSpec(shape=output_img_shape, dtype=tf.float32),
-                    tf.TensorSpec(shape=(no_classes), dtype=tf.bool))
-
-data_gen_test = data_generator(data_points, repeats=no_epochs, no_classes=3, output_image_shape=output_img_shape, param_list=param_list)
-dataset_test = tf.data.Dataset.from_generator(lambda: data_gen_test, output_signature=output_signature)
-dataset_test_batched = dataset_test.batch(batch_size)
-
-# Build Model
-opt = Adam()
-model = mmlmodel.build(input_shape=output_img_shape, classes=no_classes)
-model.load_weights(model_checkpoint_path)
-model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
-
-model.summary()
-
-# Formulate Predictions
-pred = model.predict(dataset_test_batched, batch_size=batch_size)
+# Load Predictions
+with open("y_pred.json", 'wb') as f:
+    pred = pickle.load(f)
 pred_tf = tf.constant(np.argmax(pred, axis=-1))
 
 # Load true Labels
 lb = []
-for data_point in data_points:
+for data_point in shuffled_data_points:
     with open(data_point[1]) as f:
         json_content = json.load(f)
         label_int = json_content["flow_regime"]["data"]["value"]
         lb.append(label_int)
 lb_tf = tf.constant(lb)
+with open("y_true.json", 'wb') as f:
+    pickle.dump(lb_tf, f)
 one_hot_encoder = tf.one_hot(range(no_classes), no_classes)
 lb_onehot = [one_hot_encoder[label] for label in lb]
 
@@ -174,7 +151,8 @@ auc_0_val = auc_0.result().numpy()
 
 
 # Save Metrics to json-file
-
+metrics = {'precision_0': precision_0, 'precision_1': precision_1, 'precision_2': precision_2,
+           'recall_0': recall_0, 'recall_1': recall_1, 'recall_2': recall_2}
 
 
 
