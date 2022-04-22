@@ -1,6 +1,7 @@
 import tensorflow as tf
 import json
 import random
+import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 from tensorflow.keras.metrics import Precision, Recall
@@ -24,13 +25,14 @@ model_type = "LeNet20x50"
 
 # Paths
 model_path = '../training/results'
-model_name = f'/trained_model{model_type}'
-model_checkpoint_path = f'../training/results/checkpoints{model_type}' + '/checkpoint-0020.ckpt'
-image_list = '../training/image-points-test.pickle'
-param_list = '../training/param-points-test.pickle'
+model_name = f'/results/{model_type}/trained_model'
+model_checkpoint_path = f'../training/results/{model_type}' + '/checkpoints/checkpoint-0010.ckpt'
+data_list = '../data/data-points-val.pickle'
 
 # Data Generator
-data_points = read_picklelist(image_path=image_list, param_path=param_list)
+with open(data_list, 'rb') as file:
+    # Call load method to deserialze
+    data_points = pickle.load(file)
 shuffled_data_points = random.sample(data_points, len(data_points))
 
 # Get Distribution
@@ -79,10 +81,23 @@ lb_onehot = [one_hot_encoder[label] for label in lb]
 cf_mat = tf.math.confusion_matrix(lb_tf, pred_tf, num_classes=no_classes)
 row_sums = tf.math.reduce_sum(input_tensor= cf_mat, axis=1)
 cf_mat_norm = cf_mat / row_sums
-plt.matshow(cf_mat, cmap=plt.cm.gray)
+#plt.matshow(cf_mat, cmap=plt.cm.gray)
+plt.imshow(cf_mat_norm, interpolation='nearest', cmap=plt.cm.gray)
+classNames = ['0','1', '2']
+plt.title('Flow Regime Classification Normed Confusion Matrix - Test Data')
+plt.ylabel('True label')
+plt.xlabel('Predicted label')
+tick_marks = np.arange(len(classNames))
+plt.xticks(tick_marks, classNames, rotation=45)
+plt.yticks(tick_marks, classNames)
+s = [['TN','FP'], ['FN', 'TP']]
+for i in range(2):
+    for j in range(2):
+        plt.text(j,i, str(s[i][j])+" = "+str(cf_mat_norm[i][j]))
+plt.show()
 conf1 = plt.gcf()
 plt.show()
-conf1.savefig("../Figures/ConfusionMatrix")
+conf1.savefig(f"../Figures/{model_type}/ConfusionMatrix")
 
 # Get Metrics - Precision, Recall, F1
 # Gotta love multiclass problems
@@ -132,7 +147,7 @@ plt.xticks(x_axis, metrics_names)
 plt.legend()
 bar1 = plt.gcf()
 plt.show()
-bar1.savefig("../Figures/Barplot_Precsion-Recall")
+bar1.savefig(f"../Figures/{model_type}/Barplot_Precsion-Recall")
 
 
 # ROC, AUC, log loss?
@@ -150,7 +165,7 @@ plt.plot([0, 1], [0, 1], 'k--')
 plt.legend()
 roc1 = plt.gcf()
 plt.show()
-roc1.savefig("../Figures/Roc_curves")
+roc1.savefig(f"../Figures/{model_type}/Roc_curves")
 
 # Calc AUC
 auc_0 = tf.keras.metrics.AUC()

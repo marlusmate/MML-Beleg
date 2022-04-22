@@ -19,10 +19,10 @@ model_name = "LeNet20x50"
 data_folder = '/mnt/0A60B2CB60B2BD2F/Datasets/bioreactor_flow_regimes_me/02_data'
 
 # Path to where save model
-checkpoint_path = f'./results/checkpoints{model_name}' + '/checkpoint-{epoch:04d}.ckpt'
+checkpoint_path = f'./results/{model_name}/checkpoints/' + '/checkpoint-{epoch:04d}.ckpt'
 
 # Path to save logs for tensorboard
-tensorboard_log_folder = f'./results{model_name}/tensorboard'
+tensorboard_log_folder = f'./results/{model_name}/tensorboard'
 
 # Dataset parameters
 param_list = ["stirrer_rotational_speed", "gas_flow_rate", "temperature", "fill_level"]
@@ -32,8 +32,8 @@ output_proc_shape = (len(param_list),)
 output_img_shape = (128, 128, 1)
 
 # Training hyper parameters
-no_epochs = 20
-batch_size = 600
+no_epochs = 10
+batch_size = 31
 init_lr = 0.001
 
 # Get list of data points
@@ -62,7 +62,7 @@ print("Trainings Instanzen:\n-----------------------")
 print("Klasse 0: ", lb_train.count(0), "\nKlasse 1: ", lb_train.count(1), "\nKlasse 2: ", lb_train.count(2))
 
 # Save train-Data-points for later review
-with open('data-points-test.pickle', 'wb') as f:
+with open('../data/data-points-train.pickle', 'wb') as f:
     pickle.dump(data_points_train, f)
 print("\nSaved Data points for train-review; n=", len(data_points_train))
 
@@ -83,7 +83,7 @@ print("Validierungs Instanzen:\n-----------------------")
 print("Klasse 0: ", lb_val.count(0), "\nKlasse 1: ", lb_val.count(1), "\nKlasse 2: ", lb_val.count(2))
 
 # Save train-Data-points for later review
-with open('data-points-val.pickle', 'wb') as f:
+with open('../data/data-points-val.pickle', 'wb') as f:
     pickle.dump(data_points_val, f)
 print("\nSaved Data points for val-review; n=", len(data_points_val))
 
@@ -92,7 +92,7 @@ no_test_points = int(split_ratio[2] / sum(split_ratio) * dataset_len)
 data_points_test = shuffled_data_points[no_train_points + no_val_points:]
 
 # Save Data-points for later testing
-with open('data-points-test.pickle', 'wb') as f:
+with open('../data/data-points-test.pickle', 'wb') as f:
     pickle.dump(data_points_test, f)
 print("\nSaved Data points for testing; n=", len(data_points_test))
 
@@ -137,9 +137,9 @@ history = model.fit(dataset_train_batched,
                     )
 
 # Saving model
-model.save(f'./results/trained_model{model_name}')
+model.save(f'./results/{model_name}/trained_model')
 
 # Print and save on disk model training history
-with open(f'./results/report{model_name}', 'w', encoding='utf-8') as f:
+with open(f'./results/{model_name}/report', 'w', encoding='utf-8') as f:
     json.dump(history.history, f, ensure_ascii=False, indent=4)
 
