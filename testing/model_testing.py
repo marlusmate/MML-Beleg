@@ -20,11 +20,12 @@ no_classes = 3
 no_epochs = 1
 
 # Model Name
-model_name = "LeNet20x50"
+model_type = "LeNet20x50"
 
 # Paths
 model_path = '../training/results'
-model_name = f'/trained_model{model_name}'
+model_name = f'/trained_model{model_type}'
+model_checkpoint_path = f'../training/results/checkpoints{model_type}' + '/checkpoint-0020.ckpt'
 image_list = '../training/image-points-test.pickle'
 param_list = '../training/param-points-test.pickle'
 
@@ -43,8 +44,8 @@ dataset_test_batched = dataset_test.batch(batch_size)
 
 # Build Model
 opt = Adam()
-model = mmlmodel.build_fusion(input_shape_image=output_img_shape, no_classes=no_classes)
-model.load_weights('../training/results/checkpointsMMMLP1/checkpoint-0007.ckpt')
+model = mmlmodel.build(input_shape=output_img_shape, classes=no_classes)
+model.load_weights(model_checkpoint_path)
 model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
 
 model.summary()
@@ -60,14 +61,14 @@ for data_point in data_points:
         json_content = json.load(f)
         label_int = json_content["flow_regime"]["data"]["value"]
         lb.append(label_int)
-
 lb_tf = tf.constant(lb)
-
+one_hot_encoder = tf.one_hot(range(no_classes), no_classes)
+lb_onehot = [one_hot_encoder(label) for label in lb]
 # Confusion Matrix
 # Rows: True / Label
 # Columns: Predicition
 cf_mat = tf.math.confusion_matrix(lb_tf, pred_tf, num_classes=no_classes)
-row_sums = cf_mat.sum(axis=1, keepdims=True)
+row_sums = tf.math.reduce_sum(input_tensor= cf_mat, axis=1)
 cf_mat_norm = cf_mat / row_sums
 plt.matshow(cf_mat, cmap=plt.cm.gray)
 plt.show()
@@ -126,6 +127,15 @@ plt.show()
 y_true_proba = get_pred_proba(pred_proba=pred, y_true=lb_tf)
 
 fpr_0, tpr_0, thresholds_0 = roc_curve(ovr_0_true, y_true_proba)
+fpr_1, tpr_1, thresholds_1 = roc_curve(ovr_1_true, y_true_proba)
+fpr_2, tpr_2, thresholds_2 = roc_curve(ovr_2_true, y_true_proba)
+
+plt.plot(fpr_0, tpr_0, label=0)
+plt.plot(fpr_1, tpr_1, label=1)
+plt.plot(fpr_2, tpr_2, label=2)
+plt.plot([0,1], [0,1], 'k--')
+plt.legend()
+plt.show()
 
 
 
