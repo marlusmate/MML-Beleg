@@ -35,7 +35,7 @@ shuffled_data_points = random.sample(data_points, len(data_points))
 
 # Get Distribution
 lb_test = []
-for data_point in data_points_test:
+for data_point in data_points:
     with open(data_point[1]) as f:
         json_content = json.load(f)
         lb_test.append(json_content["flow_regime"]["data"]["value"])
@@ -70,7 +70,9 @@ for data_point in data_points:
         lb.append(label_int)
 lb_tf = tf.constant(lb)
 one_hot_encoder = tf.one_hot(range(no_classes), no_classes)
-lb_onehot = [one_hot_encoder(label) for label in lb]
+lb_onehot = [one_hot_encoder[label] for label in lb]
+
+
 # Confusion Matrix
 # Rows: True / Label
 # Columns: Predicition
