@@ -16,13 +16,13 @@ no_classes = 3
 no_epochs = 1
 
 # Model Name
-model_type = "LeNet20x50"
+model_name = "LeNet20x50"
 
 # Paths
 model_path = '../training/results'
-model_name = f'/results/{model_type}/trained_model'
-model_checkpoint_path = f'../training/results/{model_type}' + '/checkpoints/checkpoint-0010.ckpt'
-data_list = '../data/data-points-val.pickle'
+model_trained = f'/results/{model_name}/trained_model'
+model_checkpoint_path = f'../training/results/{model_name}' + '/checkpoints/checkpoint-0010.ckpt'
+data_list = '../data/data-points-test.pickle'
 
 # Data Generator
 with open(data_list, 'rb') as file:
@@ -56,8 +56,9 @@ model.summary()
 
 # Save Predictions
 pred = model.predict(dataset_test_batched, batch_size=batch_size)
-with open("y_pred.json", 'wb') as f:
-    pickle.dump(pred, f)
+np.save(f"y_pred_{model_name}.npy", pred)
+#with open(f"y_pred_{model_name}.pickle", 'wb') as f:
+    #pickle.dump(pred, f)
 pred_tf = tf.constant(np.argmax(pred, axis=-1))
-print("Vorhersagen(", len(pred), ") abgespeichert - y_pred.json")
+print("Vorhersagen(", len(pred), f") abgespeichert - y_pred_{model_name}.pickle")
 

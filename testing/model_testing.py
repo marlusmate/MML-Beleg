@@ -21,7 +21,7 @@ no_classes = 3
 no_epochs = 1
 
 # Model Name
-model_type = "LeNet20x50"
+model_name = "LeNet20x50"
 
 # Paths
 data_list = '../data/data-points-test.pickle'
@@ -34,8 +34,9 @@ shuffled_data_points = random.sample(data_points, len(data_points))
 print("Datenpunkte '", data_list, "' geladen, n=", len(data_points))
 
 # Load Predictions
-with open("y_pred.json", 'wb') as f:
-    pred = pickle.load(f)
+pred = np.load(f"y_pred_{model_name}.npy")
+#with open(f"y_pred_{model_name}.pickle", 'rb') as f:
+    #pred = pickle.load(f)
 pred_tf = tf.constant(np.argmax(pred, axis=-1))
 
 # Load true Labels
@@ -46,7 +47,7 @@ for data_point in shuffled_data_points:
         label_int = json_content["flow_regime"]["data"]["value"]
         lb.append(label_int)
 lb_tf = tf.constant(lb)
-with open("y_true.json", 'wb') as f:
+with open("y_true.pickle", 'wb') as f:
     pickle.dump(lb_tf, f)
 one_hot_encoder = tf.one_hot(range(no_classes), no_classes)
 lb_onehot = [one_hot_encoder[label] for label in lb]
@@ -74,7 +75,7 @@ for i in range(2):
 plt.show()
 conf1 = plt.gcf()
 plt.show()
-conf1.savefig(f"../Figures/{model_type}/ConfusionMatrix")
+conf1.savefig(f"../Figures/{model_name}/ConfusionMatrix")
 
 # Get Metrics - Precision, Recall, F1
 # Gotta love multiclass problems
@@ -124,7 +125,7 @@ plt.xticks(x_axis, metrics_names)
 plt.legend()
 bar1 = plt.gcf()
 plt.show()
-bar1.savefig(f"../Figures/{model_type}/Barplot_Precsion-Recall")
+bar1.savefig(f"../Figures/{model_name}/Barplot_Precsion-Recall")
 
 
 # ROC, AUC, log loss?
@@ -142,7 +143,7 @@ plt.plot([0, 1], [0, 1], 'k--')
 plt.legend()
 roc1 = plt.gcf()
 plt.show()
-roc1.savefig(f"../Figures/{model_type}/Roc_curves")
+roc1.savefig(f"../Figures/{model_name}/Roc_curves")
 
 # Calc AUC
 auc_0 = tf.keras.metrics.AUC()
@@ -154,6 +155,12 @@ auc_0_val = auc_0.result().numpy()
 metrics = {'precision_0': precision_0, 'precision_1': precision_1, 'precision_2': precision_2,
            'recall_0': recall_0, 'recall_1': recall_1, 'recall_2': recall_2}
 
+model_metrics = {'model-name': f"{model_name}"}
+
+with open("../metrics.json", 'wb') as f:
+    pickle.dump(metrics, f)
+with open("../metrics-model.json", 'wb') as f:
+    pickle.dump(model_metrics, f)
 
 
 
