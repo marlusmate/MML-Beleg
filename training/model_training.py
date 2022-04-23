@@ -13,7 +13,7 @@ from data_import.data_import import get_data_points_list, data_generator
 print(tf.config.list_physical_devices('GPU'))
 
 # Model Name
-model_name = "EarlyFusion1"
+model_name = "HybridFusion1"
 
 # Path to data
 data_folder = '/mnt/0A60B2CB60B2BD2F/Datasets/bioreactor_flow_regimes_me/02_data'
@@ -32,13 +32,13 @@ output_proc_shape = (len(param_list),)
 output_img_shape = (128, 128, 1)
 
 # Training hyper parameters
-no_epochs = 10
+no_epochs = 20
 batch_size = 31
 init_lr = 0.001
 
 # Get list of data points
 data_points = get_data_points_list(data_folder)
-shuffled_data_points = random.sample(data_points, len(data_points))
+shuffled_data_points = random.sample(data_points, len(data_points))[:500]
 dataset_len = len(shuffled_data_points)
 
 # Dataset output siganture
@@ -99,7 +99,7 @@ print("\nSaved Data points for testing; n=", len(data_points_test))
 
 # Model compilation
 opt = Adam(learning_rate=init_lr, decay=init_lr / no_epochs)
-model = mmlmodel.build(input_shape_image=output_img_shape, input_shape_params=output_proc_shape, classes=no_classes)
+model = mmlmodel.build_fusion(input_shape_image=output_img_shape, input_shape_params=output_proc_shape, classes=no_classes)
 model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
 model.summary()
 
