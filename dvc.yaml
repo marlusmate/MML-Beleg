@@ -1,0 +1,7 @@
+stages:
+  model_testing:
+    cmd: python model_testing.py
+    deps:
+    - ./testing/model_testing.py
+    outs:
+    - metrics.json

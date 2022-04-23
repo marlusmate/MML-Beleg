@@ -76,13 +76,13 @@ class mmlmodel:
         # Second complex of fully connected Layers (dense, activation
         x = Dense(15, name="dense1MergedMMMLP1")(merged)
         x = Activation("relu", name="relu1MergedMMMlP1")(x)
-        x = Dropout(rate=0.2)(x)
+        x = Dropout(rate=0.4)(x)
 
 
         # Second complex of fully connected Dense Layers (dense, activation)
         x = Dense(15, name="dense2MergedMMMLP1")(x)
         x = Activation("relu", name="relu2MergedMMlP1")(x)
-        x = Dropout(rate=0.2)(x)
+        x = Dropout(rate=0.4)(x)
 
         # Output
         output = Dense(no_classes, activation="sigmoid", name="OutputMergedMMMLP1")(x)
