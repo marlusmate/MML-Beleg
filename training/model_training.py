@@ -32,19 +32,20 @@ output_proc_shape = (len(param_list),)
 output_img_shape = (128, 128, 1)
 
 # Training hyper parameters
-no_epochs = 20
+no_epochs = 40
 batch_size = 31
 init_lr = 0.001
 
 # Get list of data points
 data_points = get_data_points_list(data_folder)
-shuffled_data_points = random.sample(data_points, len(data_points))[:500]
+shuffled_data_points = random.sample(data_points, len(data_points))
 dataset_len = len(shuffled_data_points)
 
 # Dataset output siganture
 output_signature = ((tf.TensorSpec(shape=output_img_shape, dtype=tf.float32),
                     tf.TensorSpec(shape=output_proc_shape, dtype=tf.float32)),
-                    tf.TensorSpec(shape=(no_classes), dtype=tf.bool))
+                    (tf.TensorSpec(shape=(no_classes), dtype=tf.bool),
+                    tf.TensorSpec(shape=(no_classes), dtype=tf.bool)))
 
 # Training dataset
 no_train_points = int(split_ratio[0] / sum(split_ratio) * dataset_len)
@@ -100,7 +101,7 @@ print("\nSaved Data points for testing; n=", len(data_points_test))
 # Model compilation
 opt = Adam(learning_rate=init_lr, decay=init_lr / no_epochs)
 model = mmlmodel.build_fusion(input_shape_image=output_img_shape, input_shape_params=output_proc_shape, classes=no_classes)
-model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
+model.compile(loss=["categorical_crossentropy","categorical_crossentropy"], loss_weights=[0.8, 0.2], optimizer=opt, metrics=["accuracy"])
 model.summary()
 
 print("Model mit CUDA compiliert: ", tf.test.is_built_with_cuda())

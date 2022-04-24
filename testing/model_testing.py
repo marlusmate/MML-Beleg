@@ -21,7 +21,7 @@ no_classes = 3
 no_epochs = 1
 
 # Model Name
-model_type = "LeNet20x50"
+model_type = "HybridFusion1"
 
 # Paths
 data_list = '../data/data-points-test.pickle'
@@ -34,9 +34,9 @@ shuffled_data_points = random.sample(data_points, len(data_points))
 print("Datenpunkte '", data_list, "' geladen, n=", len(data_points))
 
 # Load Predictions
-with open("y_pred.json", 'wb') as f:
-    pred = pickle.load(f)
-pred_tf = tf.constant(np.argmax(pred, axis=-1))
+pred = np.load(f"y_pred_{model_type}.npy")
+pred_finaloutput = pred[0]
+pred_tf = tf.convert_to_tensor(np.argmax(pred_finaloutput, axis=-1))
 
 # Load true Labels
 lb = []
@@ -67,15 +67,11 @@ plt.xlabel('Predicted label')
 tick_marks = np.arange(len(classNames))
 plt.xticks(tick_marks, classNames, rotation=45)
 plt.yticks(tick_marks, classNames)
-s = [['TN','FP'], ['FN', 'TP']]
-for i in range(2):
-    for j in range(2):
-        plt.text(j,i, str(s[i][j])+" = "+str(cf_mat_norm[i][j]))
 plt.show()
 conf1 = plt.gcf()
 plt.show()
 conf1.savefig(f"../Figures/{model_type}/ConfusionMatrix")
-
+print("CF:\n", cf_mat)
 # Get Metrics - Precision, Recall, F1
 # Gotta love multiclass problems
 # Get binary Labels (axis=0 == columns, axis=1 == rows
@@ -129,7 +125,7 @@ bar1.savefig(f"../Figures/{model_type}/Barplot_Precsion-Recall")
 
 # ROC, AUC, log loss?
 # y_pred value for true class of instance needed
-y_true_proba = get_pred_proba(pred_proba=pred, y_true=lb_tf)
+y_true_proba = get_pred_proba(pred_proba=pred_finaloutput, y_true=lb_tf)
 
 fpr_0, tpr_0, thresholds_0 = roc_curve(ovr_0_true, y_true_proba)
 fpr_1, tpr_1, thresholds_1 = roc_curve(ovr_1_true, y_true_proba)

@@ -14,19 +14,19 @@ from sklearn.metrics import roc_curve
 # Dataset Parameters
 param_list = ["stirrer_rotational_speed", "gas_flow_rate", "temperature", "fill_level"]
 output_proc_shape = (len(param_list),)
-batch_size = 15
+batch_size = 31
 output_img_shape = (128, 128, 1)
 no_classes = 3
 no_epochs = 1
 
 # Model Name
-model_type = "LeNet20x50"
+model_type = "HybridFusion1"
 
 # Paths
 model_path = '../training/results'
 model_name = f'/results/{model_type}/trained_model'
 model_checkpoint_path = f'../training/results/{model_type}' + '/checkpoints/checkpoint-0010.ckpt'
-data_list = '../data/data-points-val.pickle'
+data_list = '../data/data-points-test.pickle'
 
 # Data Generator
 with open(data_list, 'rb') as file:
@@ -43,8 +43,10 @@ for data_point in data_points:
 print("Test Instanzen:\n-----------------------")
 print("Klasse 0: ", lb_test.count(0), "\nKlasse 1: ", lb_test.count(1), "\nKlasse 2: ", lb_test.count(2))
 
-output_signature = (tf.TensorSpec(shape=output_img_shape, dtype=tf.float32),
-                    tf.TensorSpec(shape=(no_classes), dtype=tf.bool))
+output_signature = ((tf.TensorSpec(shape=output_img_shape, dtype=tf.float32),
+                    tf.TensorSpec(shape=output_proc_shape, dtype=tf.float32)),
+                    (tf.TensorSpec(shape=(no_classes), dtype=tf.bool),
+                    tf.TensorSpec(shape=(no_classes), dtype=tf.bool)))
 
 data_gen_test = data_generator(data_points, repeats=no_epochs, no_classes=3, output_image_shape=output_img_shape, param_list=param_list)
 dataset_test = tf.data.Dataset.from_generator(lambda: data_gen_test, output_signature=output_signature)
@@ -52,16 +54,17 @@ dataset_test_batched = dataset_test.batch(batch_size)
 
 # Build Model
 opt = Adam()
-model = mmlmodel.build(input_shape=output_img_shape, classes=no_classes)
+model = mmlmodel.build_fusion(input_shape_image=output_img_shape, input_shape_params=output_proc_shape, classes=no_classes)
 model.load_weights(model_checkpoint_path)
-model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
-
+model.compile(loss=["categorical_crossentropy","categorical_crossentropy"], loss_weights=[0.8, 0.2], optimizer=opt, metrics=["accuracy"])
 model.summary()
 
-# Save Predictions
+# Make Predictions
 pred = model.predict(dataset_test_batched, batch_size=batch_size)
-with open("y_pred.json", 'wb') as f:
-    pickle.dump(pred, f)
+
+# Save Predictions and corresponding labels
+np.save(f"y_pred_{model_type}.npy", pred)
+np.save(f"y_true_{model_type}.npy", lb_test)
 pred_tf = tf.constant(np.argmax(pred, axis=-1))
-print("Vorhersagen(", len(pred), ") abgespeichert - y_pred.json")
+print("Vorhersagen(", len(pred), ") abgespeichert - ",f"y_pred_{model_type}.json")
 

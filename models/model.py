@@ -103,7 +103,7 @@ class mmlmodel:
         # Output
         final_output = Dense(classes, activation="sigmoid", name="OutputMergedMMMLP2")(x)
 
-        return Model(inputs=(image_in, params_in), outputs=[final_output, earlyfusion1_output], name="ModelMultimodal")
+        return Model(inputs=(image_in, params_in), outputs=(final_output, earlyfusion1_output), name="ModelMultimodal")
 
     @staticmethod
     def build_model(input_shape_image, input_shape_params, classes):
